@@ -1,0 +1,36 @@
+
+version: "3.8"
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama_strands
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  backend:
+    build: ./backend_agent
+    container_name: strands-agent-backend
+    depends_on:
+      - ollama
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=qwen2.5:3b
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL_ARG: http://localhost:8000
+    container_name: strands-agent-ui
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+
+volumes:
+  ollama_data:
+
