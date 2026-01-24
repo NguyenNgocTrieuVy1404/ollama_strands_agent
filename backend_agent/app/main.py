@@ -44,18 +44,20 @@ async def api_extract(req: InvoiceRequest):
     Nếu request này fail, request tiếp theo sẽ bắt đầu lại từ đầu hoàn toàn mới.
     """
     try:
-        # Mỗi lần gọi run_invoice_extraction() là một execution mới, độc lập
         data = await run_invoice_extraction(req.invoice_text)
         return {"ok": True, "data": data}
-    except Exception as e:
-        logger.exception("Invoice extraction error")
-        # Trả về error message rõ ràng và cho biết có thể thử lại
-        error_msg = str(e)
-        # Rút gọn error message nếu quá dài
-        if len(error_msg) > 200:
-            error_msg = error_msg[:200] + "..."
+    except ValueError as e:
+        # Lỗi do input của người dùng (quá ngắn, không đúng format, hoặc model không trích xuất được)
+        logger.warning(f"User input error: {str(e)}")
         return {
-            "ok": False, 
-            "error": error_msg,
-            "message": "Có thể thử lại bằng cách gửi request mới. Mỗi request là độc lập."
+            "ok": False,
+            "error_type": "VALIDATION_ERROR",
+            "message": str(e)
+        }
+    except Exception as e:
+        logger.exception("System error during invoice extraction")
+        return {
+            "ok": False,
+            "error_type": "SYSTEM_ERROR",
+            "message": "Có lỗi xảy ra trong quá trình xử lý hệ thống. Vui lòng thử lại sau."
         }

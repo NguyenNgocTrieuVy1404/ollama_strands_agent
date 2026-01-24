@@ -360,21 +360,34 @@ export default function App() {
 
             {error && (
               <div style={styles.error}>
-                <div style={{ marginBottom: "10px", fontWeight: "600" }}>❌ Lỗi:</div>
-                <div style={{ whiteSpace: "pre-wrap", marginBottom: "15px" }}>{error}</div>
+                <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+                  <span style={{ fontSize: "20px", marginRight: "10px" }}>⚠️</span>
+                  <strong style={{ fontSize: "16px" }}>Thông báo từ hệ thống</strong>
+                </div>
+                <div style={{ whiteSpace: "pre-wrap", color: "#444", marginBottom: "15px", lineHeight: "1.5" }}>
+                  {error}
+                </div>
+                <div style={{ borderTop: "1px solid #ffcccc", paddingTop: "10px", fontSize: "13px", color: "#666" }}>
+                  <strong>Gợi ý:</strong>
+                  <ul style={{ marginTop: "5px", paddingLeft: "20px" }}>
+                    <li>Đảm bảo văn bản hóa đơn có đầy đủ thông tin quan trọng.</li>
+                    <li>Nếu bạn đang dùng ảnh, hãy kiểm tra lại chất lượng OCR.</li>
+                    <li>Thử cung cấp thêm ngữ cảnh cho AI (ví dụ: "Đây là hóa đơn của công ty...").</li>
+                  </ul>
+                </div>
                 <button
                   style={{
                     ...styles.button,
-                    backgroundColor: "#c33",
-                    fontSize: "14px",
-                    padding: "8px 16px",
+                    backgroundColor: "#eee",
+                    color: "#333",
+                    fontSize: "13px",
+                    padding: "6px 12px",
+                    marginTop: "10px",
+                    border: "1px solid #ddd"
                   }}
-                  onClick={() => {
-                    setError(null);
-                    setInvoiceResult(null);
-                  }}
+                  onClick={() => setError(null)}
                 >
-                  ✖️ Xóa thông báo lỗi
+                  Đóng thông báo
                 </button>
               </div>
             )}
