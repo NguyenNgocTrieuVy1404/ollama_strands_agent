@@ -224,9 +224,13 @@ export default function App() {
 
   const extractInvoice = async () => {
     if (!invoiceText.trim()) return;
-    setLoading(true);
+    
+    // QUAN TRỌNG: Clear tất cả state trước khi gửi request mới
+    // Mỗi lần bấm button này = một request hoàn toàn mới, độc lập
     setError(null);
     setInvoiceResult(null);
+    setLoading(true);
+    
     try {
       const r = await fetch(`${API_BASE_URL}/api/extract-invoice`, {
         method: "POST",
@@ -236,13 +240,28 @@ export default function App() {
       const d = await r.json();
       if (d.ok) {
         setInvoiceResult(d.data);
+        setError(null); // Clear error nếu thành công
       } else {
-        setError(d.error || "Lỗi khi trích xuất hóa đơn");
+        // Hiển thị error message từ backend (có thể kèm message hướng dẫn)
+        const errorMsg = d.error || "Lỗi khi trích xuất hóa đơn";
+        const helpMsg = d.message || "Bạn có thể thử lại bằng cách bấm nút 'Trích xuất Hóa đơn' lại.";
+        setError(`${errorMsg}\n\n💡 ${helpMsg}`);
       }
     } catch (err) {
-      setError("Lỗi khi trích xuất hóa đơn: " + err.message);
+      setError(`Lỗi khi trích xuất hóa đơn: ${err.message}\n\n💡 Bạn có thể thử lại bằng cách bấm nút 'Trích xuất Hóa đơn' lại.`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Clear error và result khi switch tab
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === "invoice") {
+      // Khi chuyển sang tab invoice, clear error và result cũ (nếu có)
+      // Để user có thể bắt đầu lại từ đầu
+      setError(null);
+      setInvoiceResult(null);
     }
   };
 
@@ -256,13 +275,13 @@ export default function App() {
       <div style={styles.tabs}>
         <button
           style={{ ...styles.tab, ...(activeTab === "chat" ? styles.tabActive : {}) }}
-          onClick={() => setActiveTab("chat")}
+          onClick={() => handleTabChange("chat")}
         >
           💬 Chat với AI
         </button>
         <button
           style={{ ...styles.tab, ...(activeTab === "invoice" ? styles.tabActive : {}) }}
-          onClick={() => setActiveTab("invoice")}
+          onClick={() => handleTabChange("invoice")}
         >
           📄 Trích xuất Hóa đơn
         </button>
@@ -339,7 +358,26 @@ export default function App() {
               {loading ? "Đang xử lý..." : "Trích xuất Hóa đơn"}
             </button>
 
-            {error && <div style={styles.error}>{error}</div>}
+            {error && (
+              <div style={styles.error}>
+                <div style={{ marginBottom: "10px", fontWeight: "600" }}>❌ Lỗi:</div>
+                <div style={{ whiteSpace: "pre-wrap", marginBottom: "15px" }}>{error}</div>
+                <button
+                  style={{
+                    ...styles.button,
+                    backgroundColor: "#c33",
+                    fontSize: "14px",
+                    padding: "8px 16px",
+                  }}
+                  onClick={() => {
+                    setError(null);
+                    setInvoiceResult(null);
+                  }}
+                >
+                  ✖️ Xóa thông báo lỗi
+                </button>
+              </div>
+            )}
 
             {invoiceResult && (
               <div style={styles.resultContainer}>

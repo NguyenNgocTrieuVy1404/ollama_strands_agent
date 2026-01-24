@@ -37,10 +37,25 @@ async def api_chat(req: ChatRequest):
 
 @app.post("/api/extract-invoice")
 async def api_extract(req: InvoiceRequest):
-    """Invoice extraction endpoint sử dụng Strands Agent với Structured Output"""
+    """
+    Invoice extraction endpoint sử dụng Strands Agent với Structured Output.
+    
+    LƯU Ý: Mỗi HTTP request là ĐỘC LẬP - không có state nào được giữ lại giữa các requests.
+    Nếu request này fail, request tiếp theo sẽ bắt đầu lại từ đầu hoàn toàn mới.
+    """
     try:
+        # Mỗi lần gọi run_invoice_extraction() là một execution mới, độc lập
         data = await run_invoice_extraction(req.invoice_text)
         return {"ok": True, "data": data}
     except Exception as e:
         logger.exception("Invoice extraction error")
-        return {"ok": False, "error": str(e)}
+        # Trả về error message rõ ràng và cho biết có thể thử lại
+        error_msg = str(e)
+        # Rút gọn error message nếu quá dài
+        if len(error_msg) > 200:
+            error_msg = error_msg[:200] + "..."
+        return {
+            "ok": False, 
+            "error": error_msg,
+            "message": "Có thể thử lại bằng cách gửi request mới. Mỗi request là độc lập."
+        }
